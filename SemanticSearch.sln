@@ -6,6 +6,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SemanticSearch.AppHost", "S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SemanticSearch.ServiceDefaults", "SemanticSearch.ServiceDefaults\SemanticSearch.ServiceDefaults.csproj", "{2D210657-CCEE-6F18-3108-7543DEEBC552}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmbeddingsService", "EmbeddingsService\EmbeddingsService.csproj", "{91744B8E-FCCC-4118-9285-4110CE1E66F0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Search", "Search\Search.csproj", "{B4AF0A2C-609F-4343-B4CC-3A4C85C52F12}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,6 +24,14 @@ Global
 		{2D210657-CCEE-6F18-3108-7543DEEBC552}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2D210657-CCEE-6F18-3108-7543DEEBC552}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2D210657-CCEE-6F18-3108-7543DEEBC552}.Release|Any CPU.Build.0 = Release|Any CPU
+		{91744B8E-FCCC-4118-9285-4110CE1E66F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{91744B8E-FCCC-4118-9285-4110CE1E66F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{91744B8E-FCCC-4118-9285-4110CE1E66F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{91744B8E-FCCC-4118-9285-4110CE1E66F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4AF0A2C-609F-4343-B4CC-3A4C85C52F12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4AF0A2C-609F-4343-B4CC-3A4C85C52F12}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4AF0A2C-609F-4343-B4CC-3A4C85C52F12}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4AF0A2C-609F-4343-B4CC-3A4C85C52F12}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,0 +1,30 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36121.58 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SemanticSearch.AppHost", "SemanticSearch.AppHost\SemanticSearch.AppHost.csproj", "{AB244E1C-B9B1-432B-A7B0-BAF69FAE33B5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SemanticSearch.ServiceDefaults", "SemanticSearch.ServiceDefaults\SemanticSearch.ServiceDefaults.csproj", "{2D210657-CCEE-6F18-3108-7543DEEBC552}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AB244E1C-B9B1-432B-A7B0-BAF69FAE33B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB244E1C-B9B1-432B-A7B0-BAF69FAE33B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB244E1C-B9B1-432B-A7B0-BAF69FAE33B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB244E1C-B9B1-432B-A7B0-BAF69FAE33B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2D210657-CCEE-6F18-3108-7543DEEBC552}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2D210657-CCEE-6F18-3108-7543DEEBC552}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2D210657-CCEE-6F18-3108-7543DEEBC552}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2D210657-CCEE-6F18-3108-7543DEEBC552}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C8F27081-E71F-4EE3-ABD6-7FEE268661DC}
+	EndGlobalSection
+EndGlobal

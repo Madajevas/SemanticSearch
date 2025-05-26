@@ -1,4 +1,6 @@
 ﻿
+using MessagePack;
+
 using Microsoft.Extensions.Hosting;
 
 using System.IO.Pipes;
@@ -19,6 +21,6 @@ using var reader = new StreamReader(client);
 writer.WriteLine("Hello, Server!");
 
 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-var response = await reader.ReadLineAsync(cts.Token);
+var embedding = await MessagePackSerializer.DeserializeAsync<float[]>(client, cancellationToken: cts.Token);
 
 Console.WriteLine("Message sent to the server. Press any key to exit.");

@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using MessagePack;
+
+using Microsoft.Extensions.Hosting;
 
 using System.IO.Pipes;
 
@@ -14,8 +16,8 @@ namespace EmbeddingsService
             using var reader = new StreamReader(server);
             var text = await reader.ReadLineAsync(stoppingToken);
 
-            using var writer = new StreamWriter(server) { AutoFlush = true };
-            writer.WriteLine($"Embedded: {text}");
+            await MessagePackSerializer.SerializeAsync<float[]>(server, [1, 2, 3]);
+            await server.FlushAsync(stoppingToken);
         }
     }
 }

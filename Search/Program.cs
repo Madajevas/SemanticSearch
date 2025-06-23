@@ -39,7 +39,7 @@ using var moviesFileStream  = new StreamReader(@"C:\projects\imdb-genres\imdb_ge
 using (var csv = new CsvReader(moviesFileStream, new CsvConfiguration(CultureInfo.InvariantCulture)))
 {
     csv.Context.RegisterClassMap<MovieMap>();
-    foreach (var movieChunk in csv.GetRecords<Movie>().Chunk(500))
+    foreach (var movieChunk in csv.GetRecords<Movie>().DistinctBy(m => m.Title).Chunk(500))
     {
         using var transaction = await connection.BeginTransactionAsync();
 

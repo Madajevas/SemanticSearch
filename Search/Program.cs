@@ -17,6 +17,7 @@ using System.Linq;
 
 var connectionString = "Server=127.0.0.1,1433;Database=main;User Id=sa;Password=test-1234;Database=movies;MultipleActiveResultSets=True;TrustServerCertificate=true;";
 using var connection = new SqlConnection(connectionString);
+await connection.OpenAsync();
 await connection.ExecuteAsync("""
     IF  NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[movies]') AND type in (N'U'))
     BEGIN
@@ -38,21 +39,26 @@ using var moviesFileStream  = new StreamReader(@"C:\projects\imdb-genres\imdb_ge
 using (var csv = new CsvReader(moviesFileStream, new CsvConfiguration(CultureInfo.InvariantCulture)))
 {
     csv.Context.RegisterClassMap<MovieMap>();
-    foreach (var movie in csv.GetRecords<Movie>())
+    foreach (var movieChunk in csv.GetRecords<Movie>().Chunk(500))
     {
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var embedding = await embeddingClient.GetEmbeddingAsync(movie.Description, cts.Token);
+        using var transaction = await connection.BeginTransactionAsync();
 
-        var sql = $"""
+        foreach (var movie in movieChunk)
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            var embedding = await embeddingClient.GetEmbeddingAsync(movie.Description, cts.Token);
+
+            var sql = $"""
             INSERT INTO movies (name, description, vector)
             VALUES (@Title, @Description, CAST(JSON_ARRAY({string.Join(',', embedding)}) AS VECTOR(900)))
             """;
-        await connection.ExecuteAsync(sql, movie);
+            await connection.ExecuteAsync(sql, movie, transaction);
 
-        if (++processed % 1000 == 0)
-        {
-            Console.WriteLine($"Processed {processed} movies in {sw.ElapsedMilliseconds} ms");
+            processed++;
         }
+
+        await transaction.CommitAsync();
+        Console.WriteLine($"Processed {processed} movies in {sw.ElapsedMilliseconds} ms");
     }
 }
 

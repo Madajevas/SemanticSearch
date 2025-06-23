@@ -1,6 +1,5 @@
 ﻿using System.Buffers;
 using System.IO.Pipes;
-using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Search
@@ -9,21 +8,25 @@ namespace Search
     {
         private NamedPipeClientStream client;
 
-        public static async Task<EmbeddingClient> CreateAsync()
+        public EmbeddingClient()
         {
-            var embeddingsClient = new EmbeddingClient();
-            await embeddingsClient.client.ConnectAsync();
-
-            return embeddingsClient;
+            client = new NamedPipeClientStream(".", "text_embedding", PipeDirection.InOut, PipeOptions.Asynchronous);
         }
 
-        private EmbeddingClient()
+        public async ValueTask ConnectAsync()
         {
-            client = new NamedPipeClientStream(".", "testpipe", PipeDirection.InOut);
+            if (client.IsConnected)
+            {
+                return;
+            }
+
+            await client.ConnectAsync();
         }
 
-        public async IAsyncEnumerable<float> GetEmbeddingAsync(string text, [EnumeratorCancellation]CancellationToken cancellationToken)
+        public async Task<float[]> GetEmbeddingAsync(string text, CancellationToken cancellationToken)
         {
+            await ConnectAsync();
+
             var payload = Encoding.UTF8.GetBytes(text);
             await client.WriteAsync(BitConverter.GetBytes(payload.Length), cancellationToken);
             await client.WriteAsync(payload, 0, payload.Length, cancellationToken);
@@ -32,15 +35,14 @@ namespace Search
             await client.ReadExactlyAsync(lengthBuffer, 0, sizeof(int), cancellationToken);
             var length = BitConverter.ToInt32(lengthBuffer, 0);
             ArrayPool<byte>.Shared.Return(lengthBuffer);
-            for (int i = 0; i < length; i++)
-            {
-                var embeddingBuffer = ArrayPool<byte>.Shared.Rent(sizeof(float));
-                await client.ReadExactlyAsync(embeddingBuffer, 0, sizeof(float), cancellationToken);
-                var embeddingValue = BitConverter.ToSingle(embeddingBuffer, 0);
-                ArrayPool<byte>.Shared.Return(embeddingBuffer);
 
-                yield return embeddingValue;
-            }
+            var embeddingBuffer = ArrayPool<byte>.Shared.Rent(sizeof(float) * length);
+            await client.ReadExactlyAsync(embeddingBuffer, 0, sizeof(float) * length, cancellationToken);
+            var vector = new float[length];
+            Buffer.BlockCopy(embeddingBuffer, 0, vector, 0, sizeof(float) * length);
+            ArrayPool<byte>.Shared.Return(embeddingBuffer);
+
+            return vector;
         }
 
         public void Dispose() => client.Dispose();

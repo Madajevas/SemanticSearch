@@ -3,6 +3,7 @@ using Microsoft.ML;
 
 using System.Buffers;
 using System.IO.Pipes;
+using System.Threading;
 
 namespace EmbeddingsService
 {
@@ -49,17 +50,18 @@ namespace EmbeddingsService
 
                         var payloadBuffer = ArrayPool<byte>.Shared.Rent(length);
                         await server.ReadExactlyAsync(payloadBuffer, 0, length, stoppingToken);
-                        var payload = System.Text.Encoding.UTF8.GetString(payloadBuffer, 0, length);
+                        var text = System.Text.Encoding.UTF8.GetString(payloadBuffer, 0, length);
                         ArrayPool<byte>.Shared.Return(payloadBuffer);
 
-                        var data = new TextData { Text = payload };
+                        var data = new TextData { Text = text };
                         var embeddedText = predictionEngine.Predict(data);
-
                         await server.WriteAsync(BitConverter.GetBytes(embeddedText.Vector.Length), stoppingToken);
-                        foreach (var value in embeddedText.Vector)
-                        {
-                            await server.WriteAsync(BitConverter.GetBytes(value), stoppingToken);
-                        }
+
+                        var bufferSize = sizeof(float) * embeddedText.Vector.Length;
+                        var buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+                        Buffer.BlockCopy(embeddedText.Vector, 0, buffer, 0, bufferSize);
+                        await server.WriteAsync(buffer, 0, bufferSize, stoppingToken);
+                        ArrayPool<byte>.Shared.Return(buffer);
 
                         await server.FlushAsync(stoppingToken);
                     }

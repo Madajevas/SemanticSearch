@@ -8,6 +8,7 @@ using Microsoft.Data.SqlClient;
 
 using Search;
 
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 
@@ -28,7 +29,11 @@ await connection.ExecuteAsync("""
     END
     """);
 
-using var embeddingClient = await EmbeddingClient.CreateAsync();
+var sw = new Stopwatch();
+sw.Start();
+uint processed = 0;
+
+using var embeddingClient = new EmbeddingClient();
 using var moviesFileStream  = new StreamReader(@"C:\projects\imdb-genres\imdb_genres.csv");
 using (var csv = new CsvReader(moviesFileStream, new CsvConfiguration(CultureInfo.InvariantCulture)))
 {
@@ -36,13 +41,18 @@ using (var csv = new CsvReader(moviesFileStream, new CsvConfiguration(CultureInf
     foreach (var movie in csv.GetRecords<Movie>())
     {
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var embedding = await embeddingClient.GetEmbeddingAsync(movie.Description, cts.Token).ToArrayAsync(cts.Token);
+        var embedding = await embeddingClient.GetEmbeddingAsync(movie.Description, cts.Token);
 
         var sql = $"""
             INSERT INTO movies (name, description, vector)
             VALUES (@Title, @Description, CAST(JSON_ARRAY({string.Join(',', embedding)}) AS VECTOR(900)))
             """;
         await connection.ExecuteAsync(sql, movie);
+
+        if (++processed % 1000 == 0)
+        {
+            Console.WriteLine($"Processed {processed} movies in {sw.ElapsedMilliseconds} ms");
+        }
     }
 }
 

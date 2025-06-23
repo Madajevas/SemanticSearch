@@ -1,8 +1,7 @@
-﻿using MessagePack;
-
-using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Hosting;
 using Microsoft.ML;
 
+using System.Buffers;
 using System.IO.Pipes;
 
 namespace EmbeddingsService
@@ -18,12 +17,13 @@ namespace EmbeddingsService
 
             var textPipeline = mlContext.Transforms.Text.NormalizeText(nameof(TextData.Text))
                 .Append(mlContext.Transforms.Text.TokenizeIntoWords(outputColumnName: "Tokens", inputColumnName: nameof(TextData.Text)))
-                //.Append(mlContext.Transforms.Text.ApplyWordEmbedding(outputColumnName: nameof(TransformedTextData.Vector), inputColumnName: "Tokens"))
+                // .Append(mlContext.Transforms.Text.ApplyWordEmbedding(outputColumnName: nameof(TransformedTextData.Vector), inputColumnName: "Tokens"))
                 // Invoke-RestMethod -Uri https://mlpublicassets.blob.core.windows.net/assets/wordvectors/wiki.en.vec -OutFile ./wiki.en.vec
                 .Append(mlContext.Transforms.Text.ApplyWordEmbedding(
-                    outputColumnName: nameof(TransformedTextData.Vector),
-                    inputColumnName: "Tokens",
-                    customModelFile: @"C:\projects\wiki.en.vec"));
+                   outputColumnName: nameof(TransformedTextData.Vector),
+                   inputColumnName: "Tokens",
+                   customModelFile: @"C:\projects\wiki.en.vec"));
+                ;
 
             var textTransformer = textPipeline.Fit(emptyDataView);
             predictionEngine = mlContext.Model.CreatePredictionEngine<TextData, TransformedTextData>(textTransformer);
@@ -33,16 +33,42 @@ namespace EmbeddingsService
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            using var server = new NamedPipeServerStream("testpipe", PipeDirection.InOut);
-            await server.WaitForConnectionAsync(stoppingToken);
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                try
+                {
+                    using var server = new NamedPipeServerStream("text_embedding", PipeDirection.InOut);
+                    await server.WaitForConnectionAsync(stoppingToken);
 
-            using var reader = new StreamReader(server);
-            var text = await reader.ReadLineAsync(stoppingToken);
-            var data = new TextData { Text = text };
+                    while (server.IsConnected)
+                    {
+                        var lengthBuffer = ArrayPool<byte>.Shared.Rent(sizeof(int));
+                        await server.ReadExactlyAsync(lengthBuffer, 0, sizeof(int), stoppingToken);
+                        var length = BitConverter.ToInt32(lengthBuffer, 0);
+                        ArrayPool<byte>.Shared.Return(lengthBuffer);
 
-            var embeddedText = predictionEngine.Predict(data);
-            await MessagePackSerializer.SerializeAsync<float[]>(server, embeddedText.Vector);
-            await server.FlushAsync(stoppingToken);
+                        var payloadBuffer = ArrayPool<byte>.Shared.Rent(length);
+                        await server.ReadExactlyAsync(payloadBuffer, 0, length, stoppingToken);
+                        var payload = System.Text.Encoding.UTF8.GetString(payloadBuffer, 0, length);
+                        ArrayPool<byte>.Shared.Return(payloadBuffer);
+
+                        var data = new TextData { Text = payload };
+                        var embeddedText = predictionEngine.Predict(data);
+
+                        await server.WriteAsync(BitConverter.GetBytes(embeddedText.Vector.Length), stoppingToken);
+                        foreach (var value in embeddedText.Vector)
+                        {
+                            await server.WriteAsync(BitConverter.GetBytes(value), stoppingToken);
+                        }
+
+                        await server.FlushAsync(stoppingToken);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error: {ex.Message}");
+                }
+            }
         }
     }
 

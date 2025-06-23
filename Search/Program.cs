@@ -1,11 +1,15 @@
 ﻿
-using Dapper;
+using CsvHelper;
+using CsvHelper.Configuration;
 
-using MessagePack;
+using Dapper;
 
 using Microsoft.Data.SqlClient;
 
-using System.IO.Pipes;
+using Search;
+
+using System.Globalization;
+using System.Linq;
 
 // docker volume create mssql_vector
 // docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=test-1234" -p 1433:1433 --user root -v mssql_vector:/var/opt/mssql/data -d mcr.microsoft.com/mssql/server:2025-latest
@@ -24,18 +28,38 @@ await connection.ExecuteAsync("""
     END
     """);
 
+using var embeddingClient = await EmbeddingClient.CreateAsync();
+using var moviesFileStream  = new StreamReader(@"C:\projects\imdb-genres\imdb_genres.csv");
+using (var csv = new CsvReader(moviesFileStream, new CsvConfiguration(CultureInfo.InvariantCulture)))
+{
+    csv.Context.RegisterClassMap<MovieMap>();
+    foreach (var movie in csv.GetRecords<Movie>())
+    {
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var embedding = await embeddingClient.GetEmbeddingAsync(movie.Description, cts.Token).ToArrayAsync(cts.Token);
 
+        var sql = $"""
+            INSERT INTO movies (name, description, vector)
+            VALUES (@Title, @Description, CAST(JSON_ARRAY({string.Join(',', embedding)}) AS VECTOR(900)))
+            """;
+        await connection.ExecuteAsync(sql, movie);
+    }
+}
 
-using var client = new NamedPipeClientStream(".", "testpipe", PipeDirection.InOut);
-await client.ConnectAsync();
+Console.WriteLine("Done! Press any key to exit.");
+Console.ReadKey();
 
-using var writer = new StreamWriter(client);
-writer.AutoFlush = true;
-using var reader = new StreamReader(client);
+record Movie
+{
+    public string Title { get; init; }
+    public string Description { get; init; }
+}
 
-writer.WriteLine("Hello, Server!");
-
-using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-var embedding = await MessagePackSerializer.DeserializeAsync<float[]>(client, cancellationToken: cts.Token);
-
-Console.WriteLine("Message sent to the server. Press any key to exit.");
+class MovieMap : ClassMap<Movie>
+{
+    public MovieMap()
+    {
+        Map(m => m.Title).Name("movie title - year");
+        Map(m => m.Description).Name("description");
+    }
+}

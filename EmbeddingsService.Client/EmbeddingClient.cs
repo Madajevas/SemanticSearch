@@ -2,9 +2,9 @@
 using System.IO.Pipes;
 using System.Text;
 
-namespace Search
+namespace EmbeddingsService.Client
 {
-    internal sealed class EmbeddingClient : IDisposable
+    public sealed class EmbeddingClient : IDisposable
     {
         private NamedPipeClientStream client;
 

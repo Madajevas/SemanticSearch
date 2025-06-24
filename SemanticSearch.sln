@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36121.58 d17.14
+VisualStudioVersion = 17.14.36121.58
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SemanticSearch.AppHost", "SemanticSearch.AppHost\SemanticSearch.AppHost.csproj", "{AB244E1C-B9B1-432B-A7B0-BAF69FAE33B5}"
 EndProject
@@ -8,7 +8,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SemanticSearch.ServiceDefau
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmbeddingsService", "EmbeddingsService\EmbeddingsService.csproj", "{91744B8E-FCCC-4118-9285-4110CE1E66F0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Search", "Search\Search.csproj", "{B4AF0A2C-609F-4343-B4CC-3A4C85C52F12}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Search.DataLoader", "Search\Search.DataLoader.csproj", "{B4AF0A2C-609F-4343-B4CC-3A4C85C52F12}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmbeddingsService.Client", "EmbeddingsService.Client\EmbeddingsService.Client.csproj", "{A7A7DBC6-E958-401D-93D2-A4A416A0E546}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -32,6 +34,10 @@ Global
 		{B4AF0A2C-609F-4343-B4CC-3A4C85C52F12}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B4AF0A2C-609F-4343-B4CC-3A4C85C52F12}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B4AF0A2C-609F-4343-B4CC-3A4C85C52F12}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A7A7DBC6-E958-401D-93D2-A4A416A0E546}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7A7DBC6-E958-401D-93D2-A4A416A0E546}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7A7DBC6-E958-401D-93D2-A4A416A0E546}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7A7DBC6-E958-401D-93D2-A4A416A0E546}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

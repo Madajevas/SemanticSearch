@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\EmbeddingsService.Client\EmbeddingsService.Client.csproj" />
     <ProjectReference Include="..\SemanticSearch.ServiceDefaults\SemanticSearch.ServiceDefaults.csproj" />
   </ItemGroup>
 

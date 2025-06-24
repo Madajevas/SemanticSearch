@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <Sdk Name="Aspire.AppHost.Sdk" Version="9.0.0" />
 
@@ -18,7 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EmbeddingsService\EmbeddingsService.csproj" />
-    <ProjectReference Include="..\Search\Search.csproj" />
+    <ProjectReference Include="..\Search\Search.DataLoader.csproj" />
   </ItemGroup>
 
 </Project>

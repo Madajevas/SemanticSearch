@@ -36,11 +36,13 @@ sw.Start();
 uint processed = 0;
 
 using var embeddingClient = new EmbeddingClient();
-using var moviesFileStream  = new StreamReader(@"C:\projects\imdb-genres\imdb_genres.csv");
+// Invoke-RestMethod -uri https://www.kaggle.com/api/v1/datasets/download/ashpalsingh1525/imdb-movies-dataset -OutFile C:\temp\imdb-movies-dataset.zip
+// Expand-Archive -Path C:/temp/imdb-movies-dataset.zip -DestinationPath C:/temp/
+using var moviesFileStream  = new StreamReader(@"C:\temp\imdb_movies.csv");
 using (var csv = new CsvReader(moviesFileStream, new CsvConfiguration(CultureInfo.InvariantCulture)))
 {
     csv.Context.RegisterClassMap<MovieMap>();
-    foreach (var movieChunk in csv.GetRecords<Movie>().DistinctBy(m => m.Title).Take(1000).Chunk(500))
+    foreach (var movieChunk in csv.GetRecords<Movie>().DistinctBy(m => m.Title).Chunk(500))
     {
         using var transaction = await connection.BeginTransactionAsync();
 
@@ -76,7 +78,7 @@ class MovieMap : ClassMap<Movie>
 {
     public MovieMap()
     {
-        Map(m => m.Title).Name("movie title - year");
-        Map(m => m.Description).Name("description");
+        Map(m => m.Title).Name("names");
+        Map(m => m.Description).Name("overview");
     }
 }

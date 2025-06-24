@@ -3,7 +3,6 @@ using Microsoft.ML;
 
 using System.Buffers;
 using System.IO.Pipes;
-using System.Threading;
 
 namespace EmbeddingsService
 {
@@ -19,12 +18,17 @@ namespace EmbeddingsService
             var textPipeline = mlContext.Transforms.Text.NormalizeText(nameof(TextData.Text))
                 .Append(mlContext.Transforms.Text.TokenizeIntoWords(outputColumnName: "Tokens", inputColumnName: nameof(TextData.Text)))
                 // .Append(mlContext.Transforms.Text.ApplyWordEmbedding(outputColumnName: nameof(TransformedTextData.Vector), inputColumnName: "Tokens"))
-                // Invoke-RestMethod -Uri https://mlpublicassets.blob.core.windows.net/assets/wordvectors/wiki.en.vec -OutFile ./wiki.en.vec
                 .Append(mlContext.Transforms.Text.ApplyWordEmbedding(
                    outputColumnName: nameof(TransformedTextData.Vector),
                    inputColumnName: "Tokens",
-                   customModelFile: @"C:\projects\wiki.en.vec"));
-                ;
+
+                   // Invoke-RestMethod -Uri https://mlpublicassets.blob.core.windows.net/assets/wordvectors/wiki.en.vec -OutFile C:/temp/wiki.en.vec
+                   // customModelFile: @"C:\projects\wiki.en.vec"
+
+                   // Invoke-RestMethod -Uri https://nlp.stanford.edu/data/glove.840B.300d.zip -OutFile C:/temp/glove.840B.300d.zip
+                   // Expand-Archive -Path C:/temp/glove.840B.300d.zip -DestinationPath C:/temp/glove.840B.300d
+                   customModelFile: @"C:\projects\glove.840B.300d.txt"
+                ));
 
             var textTransformer = textPipeline.Fit(emptyDataView);
             predictionEngine = mlContext.Model.CreatePredictionEngine<TextData, TransformedTextData>(textTransformer);

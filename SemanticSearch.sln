@@ -12,6 +12,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Search.DataLoader", "Search
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmbeddingsService.Client", "EmbeddingsService.Client\EmbeddingsService.Client.csproj", "{A7A7DBC6-E958-401D-93D2-A4A416A0E546}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Search.Search", "Search.Search\Search.Search.csproj", "{D9CCF111-9D6F-4AA6-BEFE-2B4ED15E074F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -38,6 +40,10 @@ Global
 		{A7A7DBC6-E958-401D-93D2-A4A416A0E546}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A7A7DBC6-E958-401D-93D2-A4A416A0E546}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A7A7DBC6-E958-401D-93D2-A4A416A0E546}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D9CCF111-9D6F-4AA6-BEFE-2B4ED15E074F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9CCF111-9D6F-4AA6-BEFE-2B4ED15E074F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9CCF111-9D6F-4AA6-BEFE-2B4ED15E074F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9CCF111-9D6F-4AA6-BEFE-2B4ED15E074F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

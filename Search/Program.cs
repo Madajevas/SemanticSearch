@@ -12,9 +12,6 @@ using System.Data.Common;
 using System.Diagnostics;
 using System.Globalization;
 
-// docker volume create mssql_vector
-// docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=test-1234" -p 1433:1433 --user root -v mssql_vector:/var/opt/mssql/data -d mcr.microsoft.com/mssql/server:2025-latest
-
 bool isTableCreated = false;
 var connectionString = "Server=127.0.0.1,1433;Database=main;User Id=sa;Password=test-1234;Database=movies;MultipleActiveResultSets=True;TrustServerCertificate=true;";
 using var connection = new SqlConnection(connectionString);

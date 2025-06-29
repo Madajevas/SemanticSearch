@@ -73,19 +73,19 @@ namespace EmbeddingsService
         private float[] GetTextEmbedding(string text)
         {
             var (inputIds, attentionMask, tokenTypeIds) = tokenizer.Encode(text);
-            attentionMask = PadOrTruncate(attentionMask);
-            var inputIdsTensor = new DenseTensor<long>(PadOrTruncate(inputIds), [1, 128]);
+            attentionMask = Normalize(attentionMask);
+            var inputIdsTensor = new DenseTensor<long>(Normalize(inputIds), [1, 128]);
             var attentionMaskTensor = new DenseTensor<long>(attentionMask, [1, 128]);
-            var tokenTypeIdsTensor = new DenseTensor<long>(PadOrTruncate(tokenTypeIds), [1, 128]);
+            var tokenTypeIdsTensor = new DenseTensor<long>(Normalize(tokenTypeIds), [1, 128]);
             var inputs = new List<NamedOnnxValue>
                         {
                             NamedOnnxValue.CreateFromTensor("input_ids", inputIdsTensor),
                             NamedOnnxValue.CreateFromTensor("attention_mask", attentionMaskTensor),
                             NamedOnnxValue.CreateFromTensor("token_type_ids", tokenTypeIdsTensor)
                         };
+
+            // TODO: convert to ort api
             using var results = session.Run(inputs);
-
-
 
             var result = results.First().AsTensor<float>();
             int seqLen = result.Dimensions[1];
@@ -94,10 +94,12 @@ namespace EmbeddingsService
             return MeanPool(result, seqLen, hiddenSize, attentionMask.Span);
         }
 
-        private Memory<long> PadOrTruncate(Memory<long> input)
+        private Memory<long> Normalize(Memory<long> input)
         {
             if (input.Length > 128)
-                return input.Slice(0, 128);
+            {
+                return input[..128];
+            }
 
             else if (input.Length < 128)
             {
@@ -111,19 +113,25 @@ namespace EmbeddingsService
 
         private static float[] MeanPool(Tensor<float> tensor, int seqLen, int hiddenSize, ReadOnlySpan<long> attentionMask)
         {
-            float[] meanEmbedding = new float[hiddenSize];
+            var meanEmbedding = new float[hiddenSize];
             int realTokenCount = 0;
+
             for (int t = 0; t < seqLen; t++)
             {
                 if (attentionMask[t] == 1)
                 {
                     for (int h = 0; h < hiddenSize; h++)
+                    {
                         meanEmbedding[h] += tensor[0, t, h];
+                    }
                     realTokenCount++;
                 }
             }
             for (int h = 0; h < hiddenSize; h++)
+            {
                 meanEmbedding[h] /= realTokenCount;
+            }
+
             return meanEmbedding;
         }
     }

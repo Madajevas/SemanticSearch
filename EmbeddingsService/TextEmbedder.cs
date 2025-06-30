@@ -11,6 +11,8 @@ namespace EmbeddingsService
 {
     internal class TextEmbedder : BackgroundService
     {
+        private const int InputLength = 128;
+
         private InferenceSession session = null!;
         private BertTokenizer tokenizer = null!;
 
@@ -74,9 +76,9 @@ namespace EmbeddingsService
         {
             var (inputIds, attentionMask, tokenTypeIds) = tokenizer.Encode(text);
             attentionMask = Normalize(attentionMask);
-            var inputIdsTensor = new DenseTensor<long>(Normalize(inputIds), [1, 128]);
-            var attentionMaskTensor = new DenseTensor<long>(attentionMask, [1, 128]);
-            var tokenTypeIdsTensor = new DenseTensor<long>(Normalize(tokenTypeIds), [1, 128]);
+            var inputIdsTensor = new DenseTensor<long>(Normalize(inputIds), [1, InputLength]);
+            var attentionMaskTensor = new DenseTensor<long>(attentionMask, [1, InputLength]);
+            var tokenTypeIdsTensor = new DenseTensor<long>(Normalize(tokenTypeIds), [1, InputLength]);
             var inputs = new List<NamedOnnxValue>
                         {
                             NamedOnnxValue.CreateFromTensor("input_ids", inputIdsTensor),
@@ -85,25 +87,22 @@ namespace EmbeddingsService
                         };
 
             // TODO: convert to ort api
-            using var results = session.Run(inputs);
+            using var output = session.Run(inputs);
 
-            var result = results.First().AsTensor<float>();
-            int seqLen = result.Dimensions[1];
-            int hiddenSize = result.Dimensions[2];
-
-            return MeanPool(result, seqLen, hiddenSize, attentionMask.Span);
+            var result = output.First().AsTensor<float>();
+            return CalculateMean(result, attentionMask.Span);
         }
 
         private Memory<long> Normalize(Memory<long> input)
         {
-            if (input.Length > 128)
+            if (input.Length > InputLength)
             {
-                return input[..128];
+                return input[..InputLength];
             }
 
-            else if (input.Length < 128)
+            else if (input.Length < InputLength)
             {
-                var memory = (new long[128]).AsMemory();
+                var memory = (new long[InputLength]).AsMemory();
                 input.CopyTo(memory);
                 return memory;
             }
@@ -111,23 +110,26 @@ namespace EmbeddingsService
             return input;
         }
 
-        private static float[] MeanPool(Tensor<float> tensor, int seqLen, int hiddenSize, ReadOnlySpan<long> attentionMask)
+        private float[] CalculateMean(Tensor<float> result, ReadOnlySpan<long> attentionMask)
         {
-            var meanEmbedding = new float[hiddenSize];
-            int realTokenCount = 0;
+            var inputLength = result.Dimensions[1];
+            var hiddenLength = result.Dimensions[2];
+            var meanEmbedding = new float[hiddenLength];
+            var realTokenCount = 0;
 
-            for (int t = 0; t < seqLen; t++)
+            for (int i = 0; i < inputLength; i++)
             {
-                if (attentionMask[t] == 1)
+                if (attentionMask[i] == 1)
                 {
-                    for (int h = 0; h < hiddenSize; h++)
+                    for (int h = 0; h < hiddenLength; h++)
                     {
-                        meanEmbedding[h] += tensor[0, t, h];
+                        meanEmbedding[h] += result[0, i, h];
                     }
                     realTokenCount++;
                 }
             }
-            for (int h = 0; h < hiddenSize; h++)
+
+            for (int h = 0; h < hiddenLength; h++)
             {
                 meanEmbedding[h] /= realTokenCount;
             }
